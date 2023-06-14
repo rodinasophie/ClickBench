@@ -7,18 +7,22 @@
 
 # Install
 
-curl https://clickhouse.com/ | sh
-./clickhouse install --noninteractive
+if ! command -v clickhouse-client &> /dev/null
+then
+    echo "We need to install clickhouse-client..."
+    curl https://clickhouse.com/ | sh
+    ./clickhouse install --noninteractive
 
-# Load the data
-for node in "$@"
-do
-    echo "Initializing table on node: $node"
-    clickhouse-client -h $node --port 9000 < create.sql
-    wget --continue 'https://datasets.clickhouse.com/hits_compatible/hits.tsv.gz'
-    gzip -d hits.tsv.gz
-    clickhouse-client -h $node --port 9000 --time --query "INSERT INTO hits FORMAT TSV" < hits.tsv
-done
+    # Load the data
+    for node in "$@"
+    do
+        echo "Initializing table on node: $node"
+        clickhouse-client -h $node --port 9000 < create.sql
+        wget --continue 'https://datasets.clickhouse.com/hits_compatible/hits.tsv.gz'
+        gzip -d hits.tsv.gz
+        clickhouse-client -h $node --port 9000 --time --query "INSERT INTO hits FORMAT TSV" < hits.tsv
+    done
+fi
 
 # Run the queries
 for node in "$@"
