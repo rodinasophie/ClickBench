@@ -18,6 +18,7 @@ fi
 for node in "$@"
 do
     echo "Initializing table on node: $node"
+    clickhouse-client -h $node --port 9000 < drop.sql
     clickhouse-client -h $node --port 9000 < create.sql
     clickhouse-client -h $node --port 9000 --time --query "INSERT INTO hits FORMAT TSV" < hits.tsv
 done
